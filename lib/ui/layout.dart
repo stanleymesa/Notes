@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 class LayoutPage extends StatelessWidget {
   Widget body;
+  Widget fab = Container();
 
-  LayoutPage(this.body);
+  LayoutPage({this.body, this.fab});
 
   @override
   Widget build(BuildContext context) {
@@ -12,6 +13,7 @@ class LayoutPage extends StatelessWidget {
         title: Text("Notes App"),
       ),
       body: body,
+      floatingActionButton: fab,
     );
   }
 }
