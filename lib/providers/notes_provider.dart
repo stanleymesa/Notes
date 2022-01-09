@@ -1,40 +1,9 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_notes/api/notes_api.dart';
 import 'package:flutter_notes/model/note.dart';
 
 class NotesProvider with ChangeNotifier {
-  List<Note> listNotes = [
-    Note(
-        id: 'N1',
-        title: 'Catatan Materi Flutter',
-        note:
-            'Flutter merupakan Software Development Kit (SDK) yang bisa membantu developer dalam membuat aplikasi mobile cross platform. Kelas ini akan mempelajari pengembangan aplikasi mobile yang dapat dijalankan baik di IOS maupun di Android',
-        createdAt: DateTime.parse('2021-12-18 18:45:20'),
-        updatedAt: DateTime.parse('2021-12-18 21:05:10'),
-        isPinned: false),
-    Note(
-        id: 'N2',
-        title: 'Target Pembelajaran Flutter',
-        note:
-            'Peserta dapat mengembangkan aplikasi mobile (IOS dan Android) menggunakan flutter,\nPeserta memahami konsep pengembangan aplikasi menggunakan flutter,\nPeserta dapat menjalankan aplikasi mobile di IOS dan Android ataupun Emulator,\nPeserta memahami bahasa pemrograman Dart,\nPeserta dapat mendevelop aplikasi mobile menggunakan flutter dan dart dari dasar secara berurutan.',
-        createdAt: DateTime.parse('2021-12-18 18:45:20'),
-        updatedAt: DateTime.parse('2021-12-18 21:05:10'),
-        isPinned: false),
-    Note(
-        id: 'N3',
-        title: 'Belajar Flutter di ITBOX',
-        note: 'Jangan lupa belajar flutter dengan video interactive di ITBOX.',
-        createdAt: DateTime.parse('2021-12-18 18:45:20'),
-        updatedAt: DateTime.parse('2021-12-18 21:05:10'),
-        isPinned: false),
-    Note(
-        id: 'N4',
-        title: 'Resep nasi goreng',
-        note:
-            'Nasi putih 1 piring\nBawang putih 2 siung, cincang halus\nKecap manis atau kecap asin sesuai selera\nSaus sambal sesuai selera\nSaus tiram sesuai selera\nGaram secukupnya\nKaldu bubuk rasa ayam atau sapi sesuai selera\nDaun bawang 1 batang, cincang halus\nTelur ayam 1 butir\nSosis ayam 1 buah, iris tipis\nMargarin atau minyak goreng 3 sdm.',
-        createdAt: DateTime.parse('2021-12-18 18:45:20'),
-        updatedAt: DateTime.parse('2021-12-18 21:05:10'),
-        isPinned: false),
-  ];
+  List<Note> listNotes = [];
 
   void isTogglePinnedCallback(String id) {
     int index = listNotes.indexWhere((note) => note.id == id);
@@ -43,6 +12,11 @@ class NotesProvider with ChangeNotifier {
       listNotes[index].isPinned = !listNotes[index].isPinned;
       notifyListeners();
     }
+  }
+
+  Future<void> getAndSetNotes() async {
+    listNotes = await NotesAPI().getAllNotes();
+    notifyListeners();
   }
 
   List<Note> getAllNotes() {
@@ -56,8 +30,11 @@ class NotesProvider with ChangeNotifier {
     return note;
   }
 
-  void addNote(Note note) {
+  Future<void> addNote(Note note) async {
+    String id = await NotesAPI().postNote(note);
+    note = note.copywith(id: id);
     listNotes.add(note);
+    print(note.id);
     notifyListeners();
   }
 

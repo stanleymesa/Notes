@@ -33,10 +33,8 @@ class _AddOrDetailPageState extends State<AddOrDetailPage> {
     }
     // Jika Add Note
     else {
-      _note = _note.copywith(
-          id: Uuid().v1(),
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now());
+      _note =
+          _note.copywith(createdAt: DateTime.now(), updatedAt: DateTime.now());
       _notesProvider.addNote(_note);
     }
     Navigator.of(context).pop();
