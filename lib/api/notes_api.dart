@@ -79,8 +79,17 @@ class NotesAPI {
       'updated_at': note.updatedAt.toIso8601String()
     };
 
-    final jsonEncode = json.encode(map);
-    final response = await http.patch(uri, body: jsonEncode);
+    try {
+      final jsonEncode = json.encode(map);
+      final response = await http.patch(uri, body: jsonEncode);
+      if (response.statusCode != 200) {
+        throw Exception();
+      }
+    } on SocketException {
+      throw 'Tidak ada internet';
+    } catch (e) {
+      throw Exception('Error, terjadi kesalahan');
+    }
   }
 
   Future<void> updateToggle(
@@ -93,14 +102,32 @@ class NotesAPI {
       'updated_at': updated_at.toIso8601String()
     };
 
-    final jsonEncode = json.encode(map);
-    final response = await http.patch(uri, body: jsonEncode);
+    try {
+      final jsonEncode = json.encode(map);
+      final response = await http.patch(uri, body: jsonEncode);
+
+      if (response.statusCode != 200) {
+        throw Exception();
+      }
+    } on SocketException {
+      throw 'Tidak ada internet';
+    } catch (e) {
+      throw Exception('Error, terjadi kesalahan');
+    }
   }
 
   Future<void> deleteNote(String id) async {
     final uri = Uri.parse(
         "https://notes-flutter-61f0d-default-rtdb.asia-southeast1.firebasedatabase.app/notes/${id}.json");
-
-    final response = await http.delete(uri);
+    try {
+      final response = await http.delete(uri);
+      if (response.statusCode != 200) {
+        throw Exception();
+      }
+    } on SocketException {
+      throw 'Tidak Ada Internet';
+    } catch (e) {
+      throw Exception('Error, terjadi kesalahan');
+    }
   }
 }

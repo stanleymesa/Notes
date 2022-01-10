@@ -9,13 +9,21 @@ class NotesProvider with ChangeNotifier {
 
   Future<void> isTogglePinnedCallback(String id) async {
     int index = listNotes.indexWhere((note) => note.id == id);
+    Note note = listNotes.firstWhere((note) => note.id == id);
 
     if (index >= 0) {
-      listNotes[index] = listNotes[index].copywith(
-          updatedAt: DateTime.now(), isPinned: !listNotes[index].isPinned);
-      await NotesAPI()
-          .updateToggle(id, listNotes[index].isPinned, DateTime.now());
-      notifyListeners();
+      try {
+        listNotes[index] = listNotes[index].copywith(
+            updatedAt: DateTime.now(), isPinned: !listNotes[index].isPinned);
+        notifyListeners();
+        await NotesAPI()
+            .updateToggle(id, listNotes[index].isPinned, DateTime.now());
+      } catch (e) {
+        listNotes[index] = listNotes[index].copywith(
+            updatedAt: note.updatedAt, isPinned: !listNotes[index].isPinned);
+        notifyListeners();
+        return Future.error(e);
+      }
     }
   }
 
@@ -51,15 +59,28 @@ class NotesProvider with ChangeNotifier {
   }
 
   Future<void> updateNote(Note newNote) async {
-    await NotesAPI().updateNote(newNote);
-    int index = listNotes.indexWhere((note) => note.id == newNote.id);
-    listNotes[index] = newNote;
-    notifyListeners();
+    try {
+      await NotesAPI().updateNote(newNote);
+      int index = listNotes.indexWhere((note) => note.id == newNote.id);
+      listNotes[index] = newNote;
+      notifyListeners();
+    } catch (e) {
+      return Future.error(e);
+    }
   }
 
-  void deleteNote(String id) {
-    NotesAPI().deleteNote(id);
-    listNotes.removeWhere((note) => note.id == id);
-    notifyListeners();
+  Future<void> deleteNote(String id) async {
+    int index = listNotes.indexWhere((note) => note.id == id);
+    Note note = listNotes[index];
+
+    try {
+      listNotes.removeAt(index);
+      notifyListeners();
+      await NotesAPI().deleteNote(id);
+    } catch (e) {
+      listNotes.insert(index, note);
+      notifyListeners();
+      return Future.error(e);
+    }
   }
 }

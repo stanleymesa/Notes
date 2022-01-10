@@ -6,8 +6,9 @@ import 'package:provider/provider.dart';
 
 class NoteLayout extends StatelessWidget {
   final String id;
+  final BuildContext ctx;
 
-  NoteLayout({@required this.id});
+  NoteLayout({@required this.id, @required this.ctx});
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +17,13 @@ class NoteLayout extends StatelessWidget {
 
     return Dismissible(
       key: Key(_note.id),
-      onDismissed: (direction) => notesProvider.deleteNote(_note.id),
+      onDismissed: (direction) {
+        notesProvider.deleteNote(_note.id).catchError((e) {
+          ScaffoldMessenger.of(ctx).clearSnackBars();
+          ScaffoldMessenger.of(ctx)
+              .showSnackBar(SnackBar(content: Text(e.toString())));
+        });
+      },
       child: GestureDetector(
         onTap: () => Navigator.of(context)
             .pushNamed('/addOrDetailPage', arguments: _note.id),
@@ -29,7 +36,11 @@ class NoteLayout extends StatelessWidget {
                     color: Colors.white,
                   ),
                   onPressed: () {
-                    notesProvider.isTogglePinnedCallback(id);
+                    notesProvider.isTogglePinnedCallback(id).catchError((e) {
+                      ScaffoldMessenger.of(ctx).clearSnackBars();
+                      ScaffoldMessenger.of(ctx)
+                          .showSnackBar(SnackBar(content: Text(e.toString())));
+                    });
                   },
                 )),
             footer: ClipRRect(

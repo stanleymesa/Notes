@@ -14,6 +14,7 @@ class GridLayout extends StatelessWidget {
           itemCount: notesProvider.getAllNotes().length,
           itemBuilder: (ctx, index) => NoteLayout(
                 id: notesProvider.getAllNotes()[index].id,
+                ctx: context,
               )),
     );
   }
