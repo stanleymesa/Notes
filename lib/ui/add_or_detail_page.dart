@@ -12,30 +12,56 @@ class AddOrDetailPage extends StatefulWidget {
 
 class _AddOrDetailPageState extends State<AddOrDetailPage> {
   // Hooks
-  Note _note =
-      Note(id: null, title: '', note: '', createdAt: null, updatedAt: null);
+  Note _note = Note(
+      id: null,
+      title: '',
+      note: '',
+      createdAt: null,
+      updatedAt: null,
+      isPinned: false);
 
   final _formKey = GlobalKey<FormState>();
 
   bool _init = true;
+  bool _isLoading = false;
   String _idFromMain;
 
   // End Hooks
 
-  void saveNote() {
+  Future<void> saveNote() async {
     final _notesProvider = Provider.of<NotesProvider>(context, listen: false);
     _formKey.currentState.save();
+    setState(() {
+      _isLoading = true;
+    });
 
     // Jika Update Note
-    if (_idFromMain != 'null') {
-      _note = _note.copywith(updatedAt: DateTime.now());
-      _notesProvider.updateNote(_note);
-    }
-    // Jika Add Note
-    else {
-      _note =
-          _note.copywith(createdAt: DateTime.now(), updatedAt: DateTime.now());
-      _notesProvider.addNote(_note);
+    try {
+      if (_idFromMain != 'null') {
+        _note = _note.copywith(updatedAt: DateTime.now());
+        await _notesProvider.updateNote(_note);
+      }
+      // Jika Add Note
+      else {
+        _note = _note.copywith(
+            createdAt: DateTime.now(), updatedAt: DateTime.now());
+
+        await _notesProvider.addNote(_note);
+      }
+    } catch (e) {
+      await showDialog(
+          context: context,
+          builder: (builder) {
+            return AlertDialog(
+              title: Text('Error'),
+              content: Text(e.toString()),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text('Tutup'))
+              ],
+            );
+          });
     }
     Navigator.of(context).pop();
   }
@@ -67,14 +93,16 @@ class _AddOrDetailPageState extends State<AddOrDetailPage> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 10),
-            child: IconButton(
-              onPressed: () => saveNote(),
-              icon: Icon(
-                Icons.save_outlined,
-                color: Colors.white,
-                size: 30,
-              ),
-            ),
+            child: !_isLoading
+                ? IconButton(
+                    onPressed: () => saveNote(),
+                    icon: Icon(
+                      Icons.save_outlined,
+                      color: Colors.white,
+                      size: 30,
+                    ),
+                  )
+                : CircularProgressIndicator(),
           )
         ],
       ),

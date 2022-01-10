@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_notes/api/notes_api.dart';
 import 'package:flutter_notes/model/note.dart';
@@ -5,18 +7,25 @@ import 'package:flutter_notes/model/note.dart';
 class NotesProvider with ChangeNotifier {
   List<Note> listNotes = [];
 
-  void isTogglePinnedCallback(String id) {
+  Future<void> isTogglePinnedCallback(String id) async {
     int index = listNotes.indexWhere((note) => note.id == id);
 
     if (index >= 0) {
-      listNotes[index].isPinned = !listNotes[index].isPinned;
+      listNotes[index] = listNotes[index].copywith(
+          updatedAt: DateTime.now(), isPinned: !listNotes[index].isPinned);
+      await NotesAPI()
+          .updateToggle(id, listNotes[index].isPinned, DateTime.now());
       notifyListeners();
     }
   }
 
   Future<void> getAndSetNotes() async {
-    listNotes = await NotesAPI().getAllNotes();
-    notifyListeners();
+    try {
+      listNotes = await NotesAPI().getAllNotes();
+      notifyListeners();
+    } catch (e) {
+      return Future.error(e);
+    }
   }
 
   List<Note> getAllNotes() {
@@ -31,20 +40,25 @@ class NotesProvider with ChangeNotifier {
   }
 
   Future<void> addNote(Note note) async {
-    String id = await NotesAPI().postNote(note);
-    note = note.copywith(id: id);
-    listNotes.add(note);
-    print(note.id);
-    notifyListeners();
+    try {
+      String id = await NotesAPI().postNote(note);
+      note = note.copywith(id: id);
+      listNotes.add(note);
+      notifyListeners();
+    } catch (e) {
+      return Future.error(e);
+    }
   }
 
-  void updateNote(Note newNote) {
+  Future<void> updateNote(Note newNote) async {
+    await NotesAPI().updateNote(newNote);
     int index = listNotes.indexWhere((note) => note.id == newNote.id);
     listNotes[index] = newNote;
     notifyListeners();
   }
 
   void deleteNote(String id) {
+    NotesAPI().deleteNote(id);
     listNotes.removeWhere((note) => note.id == id);
     notifyListeners();
   }

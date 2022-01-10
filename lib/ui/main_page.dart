@@ -16,12 +16,21 @@ class MainPage extends StatelessWidget {
             child: FutureBuilder(
                 future: Provider.of<NotesProvider>(context, listen: false)
                     .getAndSetNotes(),
-                builder: (context, snapshot) =>
-                    (snapshot.connectionState == ConnectionState.waiting)
-                        ? Center(
-                            child: CircularProgressIndicator(),
-                          )
-                        : GridLayout())),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text(snapshot.error.toString()),
+                    );
+                  }
+
+                  return GridLayout();
+                })),
         fab: FloatingActionButton(
           elevation: 10,
           onPressed: () {
