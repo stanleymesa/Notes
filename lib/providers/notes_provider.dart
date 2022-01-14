@@ -3,24 +3,27 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_notes/api/notes_api.dart';
 import 'package:flutter_notes/model/note.dart';
+import 'package:flutter_notes/sqlite/database_helper.dart';
 
 class NotesProvider with ChangeNotifier {
   List<Note> listNotes = [];
 
   Future<void> isTogglePinnedCallback(String id) async {
     int index = listNotes.indexWhere((note) => note.id == id);
-    Note note = listNotes.firstWhere((note) => note.id == id);
+    Note oldNote = listNotes.firstWhere((note) => note.id == id);
 
     if (index >= 0) {
       try {
-        listNotes[index] = listNotes[index].copywith(
-            updatedAt: DateTime.now(), isPinned: !listNotes[index].isPinned);
+        bool currentIsPinned = listNotes[index].isPinned;
+        listNotes[index] = listNotes[index]
+            .copywith(updatedAt: DateTime.now(), isPinned: !currentIsPinned);
         notifyListeners();
-        await NotesAPI()
-            .updateToggle(id, listNotes[index].isPinned, DateTime.now());
+        await DatabaseHelper().updateToggle(
+            listNotes[index].id, !currentIsPinned, listNotes[index].updatedAt);
+        await NotesAPI().updateToggle(id, !currentIsPinned, DateTime.now());
       } catch (e) {
-        listNotes[index] = listNotes[index].copywith(
-            updatedAt: note.updatedAt, isPinned: !listNotes[index].isPinned);
+        listNotes[index] = listNotes[index]
+            .copywith(updatedAt: oldNote.updatedAt, isPinned: oldNote.isPinned);
         notifyListeners();
         return Future.error(e);
       }
@@ -30,6 +33,10 @@ class NotesProvider with ChangeNotifier {
   Future<void> getAndSetNotes() async {
     try {
       listNotes = await NotesAPI().getAllNotes();
+      await DatabaseHelper().saveAllNotes(listNotes);
+      notifyListeners();
+    } on SocketException {
+      listNotes = await DatabaseHelper().getAllNotes();
       notifyListeners();
     } catch (e) {
       return Future.error(e);
@@ -50,6 +57,7 @@ class NotesProvider with ChangeNotifier {
   Future<void> addNote(Note note) async {
     try {
       String id = await NotesAPI().postNote(note);
+      await DatabaseHelper().saveNote(note);
       note = note.copywith(id: id);
       listNotes.add(note);
       notifyListeners();
@@ -61,6 +69,7 @@ class NotesProvider with ChangeNotifier {
   Future<void> updateNote(Note newNote) async {
     try {
       await NotesAPI().updateNote(newNote);
+      await DatabaseHelper().updateNote(newNote);
       int index = listNotes.indexWhere((note) => note.id == newNote.id);
       listNotes[index] = newNote;
       notifyListeners();
@@ -76,6 +85,7 @@ class NotesProvider with ChangeNotifier {
     try {
       listNotes.removeAt(index);
       notifyListeners();
+      await DatabaseHelper().deleteNote(id);
       await NotesAPI().deleteNote(id);
     } catch (e) {
       listNotes.insert(index, note);

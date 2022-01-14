@@ -28,14 +28,14 @@ class NotesAPI {
               note: value['note'],
               createdAt: DateTime.parse(value['created_at']),
               updatedAt: DateTime.parse(value['updated_at']),
-              isPinned: (value['isPinned'] == 'true') ? true : false));
+              isPinned: value['isPinned']));
         });
         return listNotes;
       } else {
         throw Exception();
       }
     } on SocketException {
-      throw 'Tidak ada internet';
+      throw SocketException('Tidak ada internet');
     } catch (e) {
       throw Exception('Error, terjadi kesalahan');
     }
@@ -63,7 +63,7 @@ class NotesAPI {
         throw Exception();
       }
     } on SocketException {
-      throw 'Tidak ada internet';
+      throw SocketException('Tidak ada internet');
     } catch (e) {
       throw Exception('Error, terjadi kesalahan');
     }
@@ -86,7 +86,7 @@ class NotesAPI {
         throw Exception();
       }
     } on SocketException {
-      throw 'Tidak ada internet';
+      throw SocketException('Tidak ada internet');
     } catch (e) {
       throw Exception('Error, terjadi kesalahan');
     }
@@ -110,7 +110,7 @@ class NotesAPI {
         throw Exception();
       }
     } on SocketException {
-      throw 'Tidak ada internet';
+      throw SocketException('Tidak ada internet');
     } catch (e) {
       throw Exception('Error, terjadi kesalahan');
     }
@@ -125,7 +125,7 @@ class NotesAPI {
         throw Exception();
       }
     } on SocketException {
-      throw 'Tidak Ada Internet';
+      throw SocketException('Tidak ada internet');
     } catch (e) {
       throw Exception('Error, terjadi kesalahan');
     }

@@ -12,13 +12,7 @@ class AddOrDetailPage extends StatefulWidget {
 
 class _AddOrDetailPageState extends State<AddOrDetailPage> {
   // Hooks
-  Note _note = Note(
-      id: null,
-      title: '',
-      note: '',
-      createdAt: null,
-      updatedAt: null,
-      isPinned: false);
+  Note _note = Note.kosong();
 
   final _formKey = GlobalKey<FormState>();
 
